@@ -184,7 +184,7 @@ def plot_anomaly_points(
     window: int = 96,
 ) -> go.Figure:
     """
-    Highlight low-power points relative to rolling median per inverter.
+    Highlight low-power points relative to inverter mean AC power.
     """
     df = _ensure_datetime(df)
     df = _ensure_source_key(df)
@@ -192,15 +192,9 @@ def plot_anomaly_points(
         raise ValueError("SOURCE_KEY column is required for anomaly detection.")
 
     df = df.sort_values("DATE_TIME").reset_index(drop=True)
-    rolling = (
-        df.groupby("SOURCE_KEY")["AC_POWER"]
-        .rolling(window=window, min_periods=max(4, window // 4))
-        .median()
-        .reset_index(level=0, drop=True)
-    )
-
-    expected = rolling.replace(0, np.nan)
-    ratio = df["AC_POWER"] / expected
+    baseline = df.groupby("SOURCE_KEY")["AC_POWER"].transform("mean")
+    baseline = baseline.replace(0, np.nan)
+    ratio = df["AC_POWER"] / baseline
     mask = (ratio < threshold).fillna(False)
     anomalies = df.loc[mask].copy()
 
@@ -252,6 +246,30 @@ def plot_power_timeseries(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
+def plot_generation_heatmap(df: pd.DataFrame) -> go.Figure:
+    """
+    Heatmap of average AC power by day and hour.
+    """
+    df = _ensure_datetime(df)
+    if "AC_POWER" not in df.columns:
+        raise ValueError("AC_POWER column is required for heatmap.")
+
+    heat_df = (
+        df.groupby(["DATE", "HOUR"], as_index=False)["AC_POWER"].mean()
+    )
+    pivot = heat_df.pivot(index="DATE", columns="HOUR", values="AC_POWER")
+    pivot = pivot.sort_index()
+
+    fig = px.imshow(
+        pivot,
+        aspect="auto",
+        color_continuous_scale="YlOrRd",
+        labels=dict(x="Hour", y="Date", color="Avg AC Power"),
+        title="Hourly Production Heatmap",
+    )
+    return fig
+
+
 def save_figure(fig: go.Figure, output_path: str) -> str:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     fig.write_html(output_path)
@@ -266,5 +284,6 @@ __all__ = [
     "plot_temperature_profile",
     "plot_anomaly_points",
     "plot_power_timeseries",
+    "plot_generation_heatmap",
     "save_figure",
 ]

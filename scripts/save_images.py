@@ -15,6 +15,7 @@ from src.visualization import (
     plot_irradiation_vs_power,
     plot_power_timeseries,
     plot_temperature_profile,
+    plot_generation_heatmap,
 )
 
 
@@ -25,6 +26,7 @@ def build_figures(df):
         "irradiation_vs_power": plot_irradiation_vs_power(df),
         "power_timeseries": plot_power_timeseries(df),
         "temperature_profile": plot_temperature_profile(df),
+        "generation_heatmap": plot_generation_heatmap(df),
         "anomaly_points": plot_anomaly_points(df),
     }
 
@@ -60,4 +62,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
