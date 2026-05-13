@@ -28,7 +28,11 @@ def get_data(plant: int) -> pd.DataFrame:
 def filter_plant(df: pd.DataFrame, plant_id: str) -> pd.DataFrame:
     if plant_id == "All" or "PLANT_ID" not in df.columns:
         return df
-    return df[df["PLANT_ID"] == int(plant_id)].copy()
+
+    # Kaggle veri setindeki gerçek kimlik numaraları ile eşleştirme yapıyoruz
+    actual_plant_id = 4135001 if plant_id == "1" else 4136001
+
+    return df[df["PLANT_ID"] == actual_plant_id].copy()
 
 
 def build_anomaly_table(df: pd.DataFrame, threshold: float) -> pd.DataFrame:
