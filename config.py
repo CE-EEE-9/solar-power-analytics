@@ -35,3 +35,9 @@ RF_MAX_DEPTH = 10
 
 GECE_BASLANGIC = 6
 GECE_BITIS = 18
+
+# ================================
+# ANOMALY DETECTION
+# ================================
+
+ANOMALY_THRESHOLD = 0.80  # 20% below mean
