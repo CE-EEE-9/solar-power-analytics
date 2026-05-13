@@ -24,6 +24,28 @@ Solar Power Analytics is a Python-based data analytics and visualization project
 
 The main goal of this project is to support better understanding of solar plant performance by combining data preprocessing, exploratory data analysis, interactive dashboards, anomaly detection, and power forecasting in a single workflow.
 
+## Project Structure
+
+```
+solar-power-analytics/
+├── data/
+│   ├── raw/                  # Raw CSV files (not tracked by git)
+│   └── processed/            # Cleaned output files (not tracked by git)
+├── reports/
+│   └── images/               # Exported PNG charts
+├── saved_models/             # Trained ML models
+├── scripts/
+│   ├── viz_demo.py           # Demo charts with synthetic data
+│   ├── save_visuals.py       # Export charts as HTML
+│   └── save_images.py        # Export charts as PNG
+├── src/
+│   ├── data_loader.py        # Data cleaning and preprocessing
+│   └── visualization.py     # Plot functions
+├── app.py                    # Streamlit dashboard entry point
+├── config.py                 # Project-wide settings
+├── requirements.txt          # Full environment dependencies
+└── requirements-images.txt   # Additional deps for PNG export
+```
 
 ## Data source
 
