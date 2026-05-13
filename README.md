@@ -25,10 +25,33 @@ Solar Power Analytics is a Python-based data analytics and visualization project
 The main goal of this project is to support better understanding of solar plant performance by combining data preprocessing, exploratory data analysis, interactive dashboards, anomaly detection, and power forecasting in a single workflow.
 
  ### Key Features
- - Interactive Visualizations: Built with Plotly and Streamlit to display AC/DC power time series, hourly production heatmaps, and irradiation vs. power scatter plots.  
--  Threshold-Based Anomaly Detection: Identifies underperforming inverters by flagging daytime readings where AC power drops below a configurable threshold (default: 200 kW).  
+- Interactive Visualizations: Built with Plotly and Streamlit to display AC/DC power time series, hourly production heatmaps, and irradiation vs. power scatter plots.  
+- Threshold-Based Anomaly Detection: Identifies underperforming inverters by flagging daytime readings where AC power drops below a configurable threshold (default: 200 kW).  
 - Comparative Analytics: Evaluates and compares daily energy production between different plants and provides a top-10 inverter comparison by energy output.  
 - Environmental Impact Analysis: Analyzes the effect of ambient and module temperatures, as well as solar irradiation on power generation.
+
+## Data Visualization & Analytics
+
+The project incorporates an interactive data visualization and analytics layer to transform raw solar generation data into actionable operational insights. By combining exploratory data analysis (EDA) with dynamic dashboards, the system enables operators to monitor plant efficiency, detect anomalies, and evaluate inverter-level performance in real time.
+
+The visualization pipeline is designed to simplify large-scale sensor interpretation and support data-driven maintenance decisions through intuitive graphical analysis.
+
+### Visualization Components
+
+- **AC/DC Power Time-Series Analysis:** Tracks inverter-level generation trends over time to identify instability or sudden production drops.
+- **Irradiation vs. Power Scatter Analysis:** Examines the correlation between solar irradiation and generated power to evaluate energy conversion efficiency.
+- **Hourly Production Heatmaps:** Visualizes hourly energy patterns to identify abnormal low-production intervals and daily operational consistency.
+- **Inverter-Wise Comparative Analytics:** Compares inverter performance across different plants and ranks top-performing units.
+- **Temperature Impact Visualization:** Analyzes how ambient and module temperatures affect power generation behavior.
+- **Daily Energy Trend Monitoring:** Provides long-term production tracking for performance evaluation and anomaly discovery.
+
+### Interactive Dashboard Technologies
+
+The analytics dashboard is developed using modern Python visualization frameworks:
+
+- **Plotly:** Used for interactive and responsive chart generation.
+- **Streamlit:** Provides a real-time web dashboard interface with dynamic filtering capabilities.
+- **Pandas:** Handles data manipulation, aggregation, and preprocessing for visualization workflows.
 
 ## Machine Learning Module
 
@@ -76,12 +99,12 @@ solar-power-analytics/
 └── requirements-images.txt   # Additional deps for PNG export
 ```
 
-## Data source
+## Data Source
 
 - Dataset: Solar Power Generation Data
 - URL: https://www.kaggle.com/datasets/anikannal/solar-power-generation-data
 
-### Download and place the data
+### Download and Place the Data
 
 **Option 1: KaggleHub (recommended)**
 
@@ -108,7 +131,7 @@ print("Copied files to", raw_dir)
 PY
 ```
 
-**Option 2: Manual download**
+**Option 2: Manual Download**
 
 1) Download the zip from Kaggle.
 2) Place these 4 CSV files under `data/raw/`:
@@ -123,14 +146,14 @@ Then generate cleaned data:
 python src/data_loader.py
 ```
 
-## Visualization quick start
+## Visualization Quick Start
 
 1) Generate cleaned data (once):
    - Run `src/data_loader.py` to create `data/processed/clean_plant0.csv`.
 2) Build plots in `src/visualization.py` and call the functions from `app.py`.
 3) Optional: run the demo script to verify charts without raw data.
 
-## Demo charts (synthetic data)
+## Demo Charts (Synthetic Data)
 
 Run the demo script to create HTML charts in `reports/`:
 
@@ -138,7 +161,7 @@ Run the demo script to create HTML charts in `reports/`:
 python scripts/viz_demo.py
 ```
 
-## Save all charts from cleaned data (HTML)
+## Save All Charts from Cleaned Data (HTML)
 
 Create HTML reports using the real cleaned dataset:
 
@@ -152,7 +175,7 @@ Files are saved to `reports/` with a timestamp. Open any HTML file in your brows
 open reports/viz_daily_energy_plant0_YYYYMMDD_HHMMSS.html
 ```
 
-## Save all charts as images (PNG)
+## Save All Charts as Images (PNG)
 
 Install the image backend once:
 
@@ -182,7 +205,7 @@ If you use Python 3.13, make sure `numpy==2.4.4` (already updated) so installati
 
 For image export, install `requirements-images.txt` (Kaleido + Chrome requirement).
 
-## Run the Streamlit app
+## Run the Streamlit App
 
 Generate cleaned data, then launch the dashboard:
 
@@ -201,6 +224,10 @@ The app includes:
 - Visualization tab (daily energy, inverter comparison, irradiation vs power, heatmap, temperature, power timeseries)
 - Anomaly Detection tab (scatter + anomaly list table)
 - Power Prediction tab (placeholder for ML integration)
+
+## Conclusion
+
+This project demonstrates how machine learning and interactive visualization techniques can improve solar plant monitoring and predictive maintenance. By integrating anomaly detection with forecasting models, operators can better understand system efficiency and identify faulty inverter behavior early.
 
 ## Notes
 
