@@ -67,12 +67,18 @@ def main() -> None:
         st.plotly_chart(plot_daily_energy(df), use_container_width=True)
 
         st.subheader("Inverter Comparison")
-        max_date = df["DATE"].max() if "DATE" in df.columns else None
-        selected_date = st.date_input(
-            "Comparison date",
-            value=max_date,
-            max_value=max_date,
-        )
+        date_series = None
+        if "DATE_TIME" in df.columns:
+            date_series = pd.to_datetime(df["DATE_TIME"], errors="coerce").dt.date
+        max_date = date_series.max() if date_series is not None else None
+        if max_date is None:
+            selected_date = st.date_input("Comparison date")
+        else:
+            selected_date = st.date_input(
+                "Comparison date",
+                value=max_date,
+                max_value=max_date,
+            )
         st.plotly_chart(
             plot_inverter_comparison(df, date=selected_date),
             use_container_width=True,
