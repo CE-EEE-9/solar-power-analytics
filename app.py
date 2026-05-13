@@ -30,7 +30,7 @@ def filter_plant(df: pd.DataFrame, plant_id: str) -> pd.DataFrame:
     if plant_id == "All" or "PLANT_ID" not in df.columns:
         return df
 
-    # Kaggle veri setindeki gerçek kimlik numaraları ile eşleştirme yapıyoruz
+    # Kaggle veri setindeki gerçek kimlik numaraları ile eşleştirme yapıyoruz.
     actual_plant_id = 4135001 if plant_id == "1" else 4136001
 
     return df[df["PLANT_ID"] == actual_plant_id].copy()
@@ -63,6 +63,23 @@ def get_model_plant_label(selected_plant: str) -> str:
     if selected_plant == "2":
         return "Plant_2"
     return "Combined"
+
+
+def load_model_results() -> pd.DataFrame | None:
+    try:
+        results_df = pd.read_csv("reports/ml_all_model_results.csv")
+
+        # Tabloyu daha okunabilir göstermek için yuvarlama.
+        numeric_columns = ["MAE", "RMSE", "R2 Score"]
+
+        for column in numeric_columns:
+            if column in results_df.columns:
+                results_df[column] = results_df[column].round(4)
+
+        return results_df
+
+    except FileNotFoundError:
+        return None
 
 
 def main() -> None:
@@ -271,6 +288,34 @@ def main() -> None:
             except Exception as error:
                 st.error("Prediction failed.")
                 st.exception(error)
+
+        st.divider()
+
+        st.subheader("Model Performance Results")
+
+        results_df = load_model_results()
+
+        if results_df is None:
+            st.warning(
+                "Model performance results were not found. "
+                "Run `python src/models.py` to generate "
+                "`reports/ml_all_model_results.csv`."
+            )
+        else:
+            st.write(
+                "The table below shows MAE, RMSE, and R² scores for "
+                "Linear Regression and Random Forest models."
+            )
+
+            if plant == "All":
+                filtered_results = results_df
+            else:
+                selected_dataset = get_model_plant_label(plant)
+                filtered_results = results_df[
+                    results_df["Dataset"] == selected_dataset
+                ]
+
+            st.dataframe(filtered_results, use_container_width=True)
 
 
 if __name__ == "__main__":
