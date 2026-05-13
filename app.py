@@ -14,6 +14,7 @@ from src.visualization import (
     plot_temperature_profile,
 )
 
+
 st.set_page_config(
     page_title="Solar Power Analytics",
     layout="wide",
@@ -37,24 +38,38 @@ def filter_plant(df: pd.DataFrame, plant_id: str) -> pd.DataFrame:
 
 def build_anomaly_table(df: pd.DataFrame, threshold: float) -> pd.DataFrame:
     df = df.copy()
+
     if "SOURCE_KEY" not in df.columns and "SOURCE_KEY_gen" in df.columns:
         df["SOURCE_KEY"] = df["SOURCE_KEY_gen"]
 
     baseline = df.groupby("SOURCE_KEY")["AC_POWER"].transform("mean")
     baseline = baseline.replace(0, pd.NA)
+
     ratio = df["AC_POWER"] / baseline
     mask = (ratio < threshold).fillna(False)
 
     anomalies = df.loc[mask, ["DATE_TIME", "SOURCE_KEY", "AC_POWER"]].copy()
     anomalies["MEAN_AC_POWER"] = baseline[mask]
     anomalies["RATIO"] = ratio[mask]
+
     anomalies = anomalies.sort_values("RATIO", ascending=True)
+
     return anomalies
+
+
+def get_model_plant_label(selected_plant: str) -> str:
+    if selected_plant == "1":
+        return "Plant_1"
+    if selected_plant == "2":
+        return "Plant_2"
+    return "Combined"
 
 
 def main() -> None:
     st.title("Solar Power Analytics")
-    st.caption("Interactive visualization and anomaly exploration on cleaned data.")
+    st.caption(
+        "Interactive visualization, anomaly detection, and ML-based power prediction."
+    )
 
     with st.sidebar:
         st.header("Data")
@@ -64,7 +79,10 @@ def main() -> None:
     try:
         df = get_data(plant=0)
     except FileNotFoundError:
-        st.error("Temizlenmiş veri bulunamadı. Lütfen önce `python src/data_loader.py` komutunu çalıştırın.")
+        st.error(
+            "Cleaned data was not found. Please run "
+            "`python src/data_loader.py` first."
+        )
         return
 
     df = filter_plant(df, plant)
@@ -77,8 +95,8 @@ def main() -> None:
 
         st.subheader("Inverter Comparison")
 
-        # NaT (Not a Time) hatasını engelleyen güvenli tarih yakalama bloğu
         date_series = None
+
         if "DATE_TIME" in df.columns:
             valid_dates = pd.to_datetime(df["DATE_TIME"], errors="coerce").dropna()
             if not valid_dates.empty:
@@ -114,6 +132,7 @@ def main() -> None:
 
     with tabs[1]:
         st.subheader("Anomaly Candidates")
+
         threshold = st.slider(
             "Threshold (ratio to mean AC power)",
             min_value=0.1,
@@ -121,59 +140,137 @@ def main() -> None:
             value=float(ANOMALY_THRESHOLD),
             step=0.05,
         )
+
         st.plotly_chart(
             plot_anomaly_points(df, threshold=threshold),
             use_container_width=True,
         )
 
         st.subheader("Anomaly List")
+
         table = build_anomaly_table(df, threshold)
+
         st.write(f"Rows: {len(table):,}")
         st.dataframe(table, use_container_width=True)
 
     with tabs[2]:
-        st.subheader("Power Prediction (ML Integration)")
-        st.info("Eğitilmiş Random Forest modeli üzerinden anlık enerji üretimi tahmini.")
+        st.subheader("Power Prediction")
+
+        st.write(
+            "Enter weather and time values to estimate AC power generation "
+            "using the trained machine learning models."
+        )
 
         col1, col2 = st.columns(2)
-        with col1:
-            irradiation = st.number_input("Irradiation (W/m2)", value=0.65, step=0.05)
-            module_temp = st.number_input("Module temperature (°C)", value=40.0, step=1.0)
 
-            month_names = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
-                           7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
-            month = st.selectbox("Month", options=list(month_names.keys()), format_func=lambda x: month_names[x],
-                                 index=5)
+        with col1:
+            selected_model = st.selectbox(
+                "Model",
+                ["random_forest", "linear_regression"],
+                index=0,
+            )
+
+            irradiation = st.number_input(
+                "Irradiation",
+                min_value=0.0,
+                max_value=2.0,
+                value=0.65,
+                step=0.01,
+            )
+
+            ambient_temperature = st.number_input(
+                "Ambient temperature",
+                min_value=-10.0,
+                max_value=60.0,
+                value=28.0,
+                step=0.1,
+            )
+
+            month_names = {
+                1: "January",
+                2: "February",
+                3: "March",
+                4: "April",
+                5: "May",
+                6: "June",
+                7: "July",
+                8: "August",
+                9: "September",
+                10: "October",
+                11: "November",
+                12: "December",
+            }
+
+            month = st.selectbox(
+                "Month",
+                options=list(month_names.keys()),
+                format_func=lambda x: month_names[x],
+                index=5,
+            )
 
         with col2:
-            ambient_temp = st.number_input("Ambient temperature (°C)", value=28.0, step=1.0)
-            hour = st.number_input("Hour (0-23)", value=12, min_value=0, max_value=23, step=1)
+            module_temperature = st.number_input(
+                "Module temperature",
+                min_value=-10.0,
+                max_value=90.0,
+                value=40.0,
+                step=0.1,
+            )
 
-            day_names = {0: "Monday", 1: "Tuesday", 2: "Wednesday", 3: "Thursday", 4: "Friday", 5: "Saturday",
-                         6: "Sunday"}
-            day_of_week = st.selectbox("Day of Week", options=list(day_names.keys()),
-                                       format_func=lambda x: day_names[x], index=0)
+            hour = st.number_input(
+                "Hour",
+                min_value=0,
+                max_value=23,
+                value=12,
+                step=1,
+            )
 
-        plant_label = "Combined" if plant == "All" else f"Plant_{plant}"
+            day_names = {
+                0: "Monday",
+                1: "Tuesday",
+                2: "Wednesday",
+                3: "Thursday",
+                4: "Friday",
+                5: "Saturday",
+                6: "Sunday",
+            }
 
-        if st.button("Predict", type="primary"):
+            day_of_week = st.selectbox(
+                "Day of week",
+                options=list(day_names.keys()),
+                format_func=lambda x: day_names[x],
+                index=2,
+            )
+
+        plant_label = get_model_plant_label(plant)
+
+        st.info(f"Selected prediction dataset: `{plant_label}`")
+
+        if st.button("Predict AC Power", type="primary"):
             try:
                 prediction = predict_power(
                     irradiation=irradiation,
-                    ambient_temperature=ambient_temp,
-                    module_temperature=module_temp,
+                    ambient_temperature=ambient_temperature,
+                    module_temperature=module_temperature,
                     hour=hour,
                     day_of_week=day_of_week,
                     month=month,
                     plant_label=plant_label,
-                    model_name="random_forest"
+                    model_name=selected_model,
                 )
-                st.success(f"Tahmin Edilen AC Gücü: **{prediction:.2f} W**")
-            except FileNotFoundError:
-                st.error(
-                    f"Model ({plant_label}) bulunamadı! Lütfen önce `python src/models.py` komutunu çalıştırarak modelleri eğitin.")
-            except Exception as e:
-                st.error(f"Tahmin işlemi sırasında bir hata oluştu: {e}")
+
+                st.success(f"Predicted AC Power: **{prediction:.2f} W**")
+
+            except FileNotFoundError as error:
+                st.error(str(error))
+                st.warning(
+                    "If the model file is missing, run this command first: "
+                    "`python src/models.py`"
+                )
+
+            except Exception as error:
+                st.error("Prediction failed.")
+                st.exception(error)
 
 
 if __name__ == "__main__":
