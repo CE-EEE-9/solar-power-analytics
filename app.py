@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from config import ANOMALY_THRESHOLD
+from src.models import predict_power
 from src.visualization import (
     load_clean_data,
     plot_anomaly_points,
@@ -12,7 +13,6 @@ from src.visualization import (
     plot_power_timeseries,
     plot_temperature_profile,
 )
-
 
 st.set_page_config(
     page_title="Solar Power Analytics",
@@ -57,7 +57,12 @@ def main() -> None:
         plant = st.selectbox("Plant", ["All", "1", "2"], index=0)
         st.write("Make sure `data/processed/clean_plant0.csv` exists.")
 
-    df = get_data(plant=0)
+    try:
+        df = get_data(plant=0)
+    except FileNotFoundError:
+        st.error("Temizlenmiş veri bulunamadı. Lütfen önce `python src/data_loader.py` komutunu çalıştırın.")
+        return
+
     df = filter_plant(df, plant)
 
     tabs = st.tabs(["Visualization", "Anomaly Detection", "Power Prediction"])
@@ -67,11 +72,17 @@ def main() -> None:
         st.plotly_chart(plot_daily_energy(df), use_container_width=True)
 
         st.subheader("Inverter Comparison")
+
+        # NaT (Not a Time) hatasını engelleyen güvenli tarih yakalama bloğu
         date_series = None
         if "DATE_TIME" in df.columns:
-            date_series = pd.to_datetime(df["DATE_TIME"], errors="coerce").dt.date
+            valid_dates = pd.to_datetime(df["DATE_TIME"], errors="coerce").dropna()
+            if not valid_dates.empty:
+                date_series = valid_dates.dt.date
+
         max_date = date_series.max() if date_series is not None else None
-        if max_date is None:
+
+        if max_date is None or pd.isna(max_date):
             selected_date = st.date_input("Comparison date")
         else:
             selected_date = st.date_input(
@@ -79,6 +90,7 @@ def main() -> None:
                 value=max_date,
                 max_value=max_date,
             )
+
         st.plotly_chart(
             plot_inverter_comparison(df, date=selected_date),
             use_container_width=True,
@@ -116,15 +128,48 @@ def main() -> None:
         st.dataframe(table, use_container_width=True)
 
     with tabs[2]:
-        st.subheader("Power Prediction")
-        st.info(
-            "Model integration will be added by the ML team. "
-            "This tab will accept irradiation, temperature, and hour inputs."
-        )
-        st.number_input("Irradiation", value=0.0, step=0.1)
-        st.number_input("Module temperature", value=25.0, step=0.1)
-        st.number_input("Hour", value=12, min_value=0, max_value=23, step=1)
-        st.button("Predict", disabled=True)
+        st.subheader("Power Prediction (ML Integration)")
+        st.info("Eğitilmiş Random Forest modeli üzerinden anlık enerji üretimi tahmini.")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            irradiation = st.number_input("Irradiation (W/m2)", value=0.65, step=0.05)
+            module_temp = st.number_input("Module temperature (°C)", value=40.0, step=1.0)
+
+            month_names = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+                           7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
+            month = st.selectbox("Month", options=list(month_names.keys()), format_func=lambda x: month_names[x],
+                                 index=5)
+
+        with col2:
+            ambient_temp = st.number_input("Ambient temperature (°C)", value=28.0, step=1.0)
+            hour = st.number_input("Hour (0-23)", value=12, min_value=0, max_value=23, step=1)
+
+            day_names = {0: "Monday", 1: "Tuesday", 2: "Wednesday", 3: "Thursday", 4: "Friday", 5: "Saturday",
+                         6: "Sunday"}
+            day_of_week = st.selectbox("Day of Week", options=list(day_names.keys()),
+                                       format_func=lambda x: day_names[x], index=0)
+
+        plant_label = "Combined" if plant == "All" else f"Plant_{plant}"
+
+        if st.button("Predict", type="primary"):
+            try:
+                prediction = predict_power(
+                    irradiation=irradiation,
+                    ambient_temperature=ambient_temp,
+                    module_temperature=module_temp,
+                    hour=hour,
+                    day_of_week=day_of_week,
+                    month=month,
+                    plant_label=plant_label,
+                    model_name="random_forest"
+                )
+                st.success(f"Tahmin Edilen AC Gücü: **{prediction:.2f} W**")
+            except FileNotFoundError:
+                st.error(
+                    f"Model ({plant_label}) bulunamadı! Lütfen önce `python src/models.py` komutunu çalıştırarak modelleri eğitin.")
+            except Exception as e:
+                st.error(f"Tahmin işlemi sırasında bir hata oluştu: {e}")
 
 
 if __name__ == "__main__":

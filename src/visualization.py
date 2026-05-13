@@ -32,14 +32,18 @@ def _ensure_datetime(df: pd.DataFrame) -> pd.DataFrame:
     if "DATE_TIME" not in df.columns:
         raise ValueError("DATE_TIME column is required for visualization.")
     df = df.copy()
+
     if not is_datetime64_any_dtype(df["DATE_TIME"]):
         df["DATE_TIME"] = pd.to_datetime(df["DATE_TIME"], errors="coerce")
+
+    # EKLENEN KISIM: Hatalı dönüşmüş (NaT) tarih değerlerini düşürerek uygulamanın çökmesini engelle
+    df = df.dropna(subset=["DATE_TIME"])
+
     if "DATE" not in df.columns:
         df["DATE"] = df["DATE_TIME"].dt.date
     if "HOUR" not in df.columns:
         df["HOUR"] = df["DATE_TIME"].dt.hour
     return df
-
 
 def _ensure_source_key(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
