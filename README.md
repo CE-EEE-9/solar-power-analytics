@@ -30,6 +30,29 @@ The main goal of this project is to support better understanding of solar plant 
 - Comparative Analytics: Evaluates and compares daily energy production between different plants and provides a top-10 inverter comparison by energy output.  
 - Environmental Impact Analysis: Analyzes the effect of ambient and module temperatures, as well as solar irradiation on power generation.
 
+## Machine Learning Module
+
+This project transitions from descriptive analytics to predictive modeling by implementing a dedicated machine learning pipeline to forecast future energy production.
+
+### Implemented Models
+- **Linear Regression:** Used as a baseline model to establish a linear relationship between irradiation and power output.
+- **Random Forest Regressor:** An ensemble learning method applied to capture non-linear patterns and complex interactions between environmental variables.
+
+### Feature Engineering & Inputs
+To achieve high prediction accuracy, the following features are utilized:
+- **Environmental Data:** Irradiation, Ambient Temperature, Module Temperature.
+- **Operational Data:** DC Power (as a lead indicator for AC conversion).
+- **Time-based Features:** Hourly and daily seasonal components extracted from timestamps.
+
+### Prediction Target
+- **AC Power Output:** The primary metric for evaluating the real-world efficiency and revenue of the solar plant.
+
+### Evaluation Metrics
+The models are rigorously evaluated using standard statistical error metrics to ensure reliability:
+- **MAE (Mean Absolute Error):** To measure the average magnitude of errors.
+- **RMSE (Root Mean Squared Error):** To penalize larger prediction outliers.
+- **R² Score:** To determine how well the model explains the variance in the generation data.
+
 ## Project Structure
 
 ```
