@@ -1,5 +1,70 @@
 # solar-power-analytics
 
+## Takim
+
+- Ali İhsan Çevik
+- Furkan Kopan
+- Mesut Altun
+- Cem Akan
+- Veysel Genç
+- Yunus Emre Erten
+- Zeliha İnan
+- Gülse Ogultegin
+- Sinem Durmaz
+- Berat Erhan Şekeröz (Temsilci)
+- Zeynep Elif Göksu
+- Ebrar Kalfaoğlu
+- Miray Balıkoğlu
+- Arda Yenisaraç
+- Kerem Nalçabasmaz
+
+## Veri kaynagi
+
+- Dataset: Solar Power Generation Data
+- URL: https://www.kaggle.com/datasets/anikannal/solar-power-generation-data
+
+### Veri indirip yerlestirme
+
+**Secenek 1: KaggleHub ile (onerilen)**
+
+```zsh
+python -m pip install kagglehub
+python - <<'PY'
+import shutil
+import os
+import kagglehub
+
+path = kagglehub.dataset_download("anikannal/solar-power-generation-data")
+raw_dir = os.path.join(os.getcwd(), "data", "raw")
+os.makedirs(raw_dir, exist_ok=True)
+
+for name in [
+    "Plant_1_Generation_Data.csv",
+    "Plant_1_Weather_Sensor_Data.csv",
+    "Plant_2_Generation_Data.csv",
+    "Plant_2_Weather_Sensor_Data.csv",
+]:
+    shutil.copy(os.path.join(path, name), os.path.join(raw_dir, name))
+
+print("Copied files to", raw_dir)
+PY
+```
+
+**Secenek 2: Manuel indirme**
+
+1) Kaggle’dan zip indir.
+2) Asagidaki 4 CSV dosyasini `data/raw/` klasorune koy:
+   - `Plant_1_Generation_Data.csv`
+   - `Plant_1_Weather_Sensor_Data.csv`
+   - `Plant_2_Generation_Data.csv`
+   - `Plant_2_Weather_Sensor_Data.csv`
+
+Sonra temiz veri uretmek icin:
+
+```zsh
+python src/data_loader.py
+```
+
 ## Visualization quick start
 
 1) Generate cleaned data (once):
