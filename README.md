@@ -110,6 +110,20 @@ python scripts/save_images.py --plant 0
 
 PNG files are saved under `reports/images/`.
 
+## Configuration
+
+Project settings live in `config.py`:
+- Paths for data, reports, and saved models
+- Night-hour filters
+- `ANOMALY_THRESHOLD` used by anomaly charts and tables
+
+## Requirements
+
+`requirements.txt` contains pinned versions for the full environment (Streamlit, Plotly, Pandas, etc.).
+If you use Python 3.13, make sure `numpy==2.4.4` (already updated) so installation succeeds.
+
+For image export, install `requirements-images.txt` (Kaleido + Chrome requirement).
+
 ## Run the Streamlit app
 
 Generate cleaned data, then launch the dashboard:
@@ -117,6 +131,12 @@ Generate cleaned data, then launch the dashboard:
 ```zsh
 python src/data_loader.py
 streamlit run app.py
+```
+
+If you do not have Streamlit installed yet:
+
+```zsh
+python -m pip install -r requirements.txt
 ```
 
 The app includes:
