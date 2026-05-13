@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from pandas.api.types import is_datetime64_any_dtype
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import PROCESSED_DATA_PATH, ANOMALY_THRESHOLD
@@ -31,7 +32,7 @@ def _ensure_datetime(df: pd.DataFrame) -> pd.DataFrame:
     if "DATE_TIME" not in df.columns:
         raise ValueError("DATE_TIME column is required for visualization.")
     df = df.copy()
-    if not np.issubdtype(df["DATE_TIME"].dtype, np.datetime64):
+    if not is_datetime64_any_dtype(df["DATE_TIME"]):
         df["DATE_TIME"] = pd.to_datetime(df["DATE_TIME"], errors="coerce")
     if "DATE" not in df.columns:
         df["DATE"] = df["DATE_TIME"].dt.date
@@ -40,11 +41,20 @@ def _ensure_datetime(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _ensure_source_key(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    if "SOURCE_KEY" not in df.columns:
+        if "SOURCE_KEY_gen" in df.columns:
+            df["SOURCE_KEY"] = df["SOURCE_KEY_gen"]
+    return df
+
+
 def _daily_energy(df: pd.DataFrame) -> pd.DataFrame:
     """
     Compute daily energy per plant using DAILY_YIELD when available.
     """
     df = _ensure_datetime(df)
+    df = _ensure_source_key(df)
     if "DAILY_YIELD" in df.columns and "SOURCE_KEY" in df.columns:
         daily = (
             df.groupby(["DATE", "SOURCE_KEY", "PLANT_ID"], as_index=False)["DAILY_YIELD"]
@@ -87,6 +97,7 @@ def plot_inverter_comparison(
     Bar chart comparing inverter energy on a specific date.
     """
     df = _ensure_datetime(df)
+    df = _ensure_source_key(df)
     if "SOURCE_KEY" not in df.columns:
         raise ValueError("SOURCE_KEY column is required for inverter comparison.")
 
@@ -176,6 +187,7 @@ def plot_anomaly_points(
     Highlight low-power points relative to rolling median per inverter.
     """
     df = _ensure_datetime(df)
+    df = _ensure_source_key(df)
     if "SOURCE_KEY" not in df.columns:
         raise ValueError("SOURCE_KEY column is required for anomaly detection.")
 
