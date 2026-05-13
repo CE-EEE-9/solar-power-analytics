@@ -40,7 +40,7 @@ solar-power-analytics/
 │   └── save_images.py        # Export charts as PNG
 ├── src/
 │   ├── data_loader.py        # Data cleaning and preprocessing
-│   └── visualization.py     # Plot functions
+│   └── visualization.py      # Plot functions
 ├── app.py                    # Streamlit dashboard entry point
 ├── config.py                 # Project-wide settings
 ├── requirements.txt          # Full environment dependencies
