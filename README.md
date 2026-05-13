@@ -1,6 +1,6 @@
 # solar-power-analytics
 
-## Takim
+## Team
 
 - Ali İhsan Çevik
 - Furkan Kopan
@@ -11,21 +11,21 @@
 - Zeliha İnan
 - Gülse Ogultegin
 - Sinem Durmaz
-- Berat Erhan Şekeröz (Temsilci)
+- Berat Erhan Şekeröz (Representative)
 - Zeynep Elif Göksu
 - Ebrar Kalfaoğlu
 - Miray Balıkoğlu
 - Arda Yenisaraç
 - Kerem Nalçabasmaz
 
-## Veri kaynagi
+## Data source
 
 - Dataset: Solar Power Generation Data
 - URL: https://www.kaggle.com/datasets/anikannal/solar-power-generation-data
 
-### Veri indirip yerlestirme
+### Download and place the data
 
-**Secenek 1: KaggleHub ile (onerilen)**
+**Option 1: KaggleHub (recommended)**
 
 ```zsh
 python -m pip install kagglehub
@@ -50,16 +50,16 @@ print("Copied files to", raw_dir)
 PY
 ```
 
-**Secenek 2: Manuel indirme**
+**Option 2: Manual download**
 
-1) Kaggle’dan zip indir.
-2) Asagidaki 4 CSV dosyasini `data/raw/` klasorune koy:
+1) Download the zip from Kaggle.
+2) Place these 4 CSV files under `data/raw/`:
    - `Plant_1_Generation_Data.csv`
    - `Plant_1_Weather_Sensor_Data.csv`
    - `Plant_2_Generation_Data.csv`
    - `Plant_2_Weather_Sensor_Data.csv`
 
-Sonra temiz veri uretmek icin:
+Then generate cleaned data:
 
 ```zsh
 python src/data_loader.py
