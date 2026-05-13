@@ -2,6 +2,8 @@ import os
 import sys
 
 import joblib
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -10,7 +12,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeRegressor
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -23,6 +24,16 @@ from config import (
     TEST_SIZE,
 )
 from src.data_loader import load_data
+
+
+FEATURE_COLUMNS = [
+    "AMBIENT_TEMPERATURE",
+    "MODULE_TEMPERATURE",
+    "IRRADIATION",
+    "HOUR",
+    "DAY_OF_WEEK",
+    "MONTH",
+]
 
 
 def prepare_ml_data(df):
@@ -45,32 +56,22 @@ def prepare_ml_data(df):
     if "MONTH" not in df.columns:
         df["MONTH"] = df["DATE_TIME"].dt.month
 
-    # Sadece güneş ışınımı olan kayıtlar kullanılıyor.
-    # Böylece model gece saatlerindeki direkt 0 üretimden öğrenmiyor.
+    # Gece saatlerindeki direkt sıfır üretim etkisini azaltmak için
+    # yalnızca ışınım olan kayıtları kullanıyoruz.
     df = df[df["IRRADIATION"] > 0].copy()
 
     df = df.dropna(subset=["AC_POWER"])
+    df = df.dropna(subset=FEATURE_COLUMNS)
 
-    feature_columns = [
-        "AMBIENT_TEMPERATURE",
-        "MODULE_TEMPERATURE",
-        "IRRADIATION",
-        "HOUR",
-        "DAY_OF_WEEK",
-        "MONTH",
-    ]
-
-    df = df.dropna(subset=feature_columns)
-
-    X = df[feature_columns]
+    X = df[FEATURE_COLUMNS]
     y = df["AC_POWER"]
 
-    return X, y, feature_columns
+    return X, y
 
 
-def evaluate_regression_model(model, X_train, X_test, y_train, y_test):
+def evaluate_model(model, X_train, X_test, y_train, y_test):
     """
-    Modeli eğitir ve MAE, RMSE, R2 metriklerini hesaplar.
+    Modeli eğitir ve performans metriklerini hesaplar.
     """
 
     model.fit(X_train, y_train)
@@ -83,9 +84,24 @@ def evaluate_regression_model(model, X_train, X_test, y_train, y_test):
     return mae, rmse, r2, y_pred
 
 
+def save_model(model, model_name, plant_label):
+    """
+    Eğitilen modeli saved_models klasörüne kaydeder.
+    """
+
+    os.makedirs(MODEL_SAVE_PATH, exist_ok=True)
+
+    file_name = f"{model_name}_{plant_label}.pkl"
+    save_path = os.path.join(MODEL_SAVE_PATH, file_name)
+
+    joblib.dump(model, save_path)
+
+    print("Model kaydedildi:", save_path)
+
+
 def create_actual_vs_predicted_plot(y_test, y_pred, model_name, plant_label):
     """
-    Gerçek AC_POWER ve tahmin edilen AC_POWER grafiğini kaydeder.
+    Gerçek ve tahmin edilen AC_POWER değerlerini grafik olarak kaydeder.
     """
 
     os.makedirs(REPORTS_PATH, exist_ok=True)
@@ -97,8 +113,10 @@ def create_actual_vs_predicted_plot(y_test, y_pred, model_name, plant_label):
     plt.title(f"Actual vs Predicted AC Power - {model_name} - {plant_label}")
     plt.tight_layout()
 
-    file_name = f"ml_actual_vs_predicted_{plant_label}.png"
-    save_path = os.path.join(REPORTS_PATH, file_name)
+    save_path = os.path.join(
+        REPORTS_PATH,
+        f"ml_actual_vs_predicted_{model_name}_{plant_label}.png"
+    )
 
     plt.savefig(save_path, dpi=300)
     plt.close()
@@ -106,20 +124,26 @@ def create_actual_vs_predicted_plot(y_test, y_pred, model_name, plant_label):
     print("Actual vs Predicted grafiği kaydedildi:", save_path)
 
 
-def create_feature_importance_plot(model, feature_columns, plant_label):
+def create_feature_importance_plot(model, plant_label):
     """
-    Random Forest için feature importance grafiğini kaydeder.
+    Random Forest modelinin feature importance grafiğini oluşturur.
     """
 
     os.makedirs(REPORTS_PATH, exist_ok=True)
 
     importance_df = pd.DataFrame({
-        "Feature": feature_columns,
+        "Feature": FEATURE_COLUMNS,
         "Importance": model.feature_importances_
     }).sort_values(by="Importance", ascending=False)
 
     print("\nFeature Importance:")
     print(importance_df)
+
+    importance_csv_path = os.path.join(
+        REPORTS_PATH,
+        f"ml_feature_importance_{plant_label}.csv"
+    )
+    importance_df.to_csv(importance_csv_path, index=False)
 
     plt.figure(figsize=(9, 6))
     plt.bar(importance_df["Feature"], importance_df["Importance"])
@@ -129,12 +153,15 @@ def create_feature_importance_plot(model, feature_columns, plant_label):
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
 
-    file_name = f"ml_feature_importance_{plant_label}.png"
-    save_path = os.path.join(REPORTS_PATH, file_name)
+    save_path = os.path.join(
+        REPORTS_PATH,
+        f"ml_feature_importance_{plant_label}.png"
+    )
 
     plt.savefig(save_path, dpi=300)
     plt.close()
 
+    print("Feature importance CSV kaydedildi:", importance_csv_path)
     print("Feature importance grafiği kaydedildi:", save_path)
 
     return importance_df
@@ -142,7 +169,7 @@ def create_feature_importance_plot(model, feature_columns, plant_label):
 
 def train_models_for_plant(plant, plant_label):
     """
-    Belirli bir plant için Linear Regression, Decision Tree ve Random Forest eğitir.
+    Belirli bir veri seti için Linear Regression ve Random Forest modellerini eğitir.
     """
 
     print("\n" + "=" * 70)
@@ -153,12 +180,12 @@ def train_models_for_plant(plant, plant_label):
     df = load_data(plant=plant)
 
     print("\nML verisi hazırlanıyor...")
-    X, y, feature_columns = prepare_ml_data(df)
+    X, y = prepare_ml_data(df)
 
     print("Feature sayısı:", X.shape[1])
     print("Satır sayısı:", X.shape[0])
     print("Target:", "AC_POWER")
-    print("Kullanılan feature'lar:", feature_columns)
+    print("Kullanılan feature'lar:", FEATURE_COLUMNS)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -168,12 +195,8 @@ def train_models_for_plant(plant, plant_label):
     )
 
     models = {
-        "Linear Regression": LinearRegression(),
-        "Decision Tree": DecisionTreeRegressor(
-            random_state=RANDOM_STATE,
-            max_depth=RF_MAX_DEPTH
-        ),
-        "Random Forest": RandomForestRegressor(
+        "linear_regression": LinearRegression(),
+        "random_forest": RandomForestRegressor(
             n_estimators=RF_N_ESTIMATORS,
             max_depth=RF_MAX_DEPTH,
             random_state=RANDOM_STATE,
@@ -181,13 +204,13 @@ def train_models_for_plant(plant, plant_label):
         )
     }
 
-    results = []
-    predictions = {}
+    result_rows = []
+    trained_models = {}
 
     for model_name, model in models.items():
         print("\nModel eğitiliyor:", model_name)
 
-        mae, rmse, r2, y_pred = evaluate_regression_model(
+        mae, rmse, r2, y_pred = evaluate_model(
             model,
             X_train,
             X_test,
@@ -195,7 +218,7 @@ def train_models_for_plant(plant, plant_label):
             y_test
         )
 
-        results.append({
+        result_rows.append({
             "Dataset": plant_label,
             "Model": model_name,
             "MAE": mae,
@@ -203,54 +226,39 @@ def train_models_for_plant(plant, plant_label):
             "R2 Score": r2
         })
 
-        predictions[model_name] = y_pred
+        trained_models[model_name] = model
 
         print("MAE:", round(mae, 4))
         print("RMSE:", round(rmse, 4))
         print("R2 Score:", round(r2, 4))
 
-    results_df = pd.DataFrame(results)
+        save_model(model, model_name, plant_label)
+
+        create_actual_vs_predicted_plot(
+            y_test,
+            y_pred,
+            model_name,
+            plant_label
+        )
+
+    # Feature importance Random Forest üzerinden çıkarılır.
+    create_feature_importance_plot(
+        trained_models["random_forest"],
+        plant_label
+    )
+
+    results_df = pd.DataFrame(result_rows)
     results_df = results_df.sort_values(by="R2 Score", ascending=False)
 
     print(f"\n{plant_label} Model Karşılaştırma:")
     print(results_df)
-
-    best_model_name = results_df.iloc[0]["Model"]
-    best_model = models[best_model_name]
-    best_prediction = predictions[best_model_name]
-
-    print(f"\n{plant_label} için en iyi model:", best_model_name)
-
-    create_actual_vs_predicted_plot(
-        y_test,
-        best_prediction,
-        best_model_name,
-        plant_label
-    )
-
-    # Feature importance sadece Random Forest için anlamlıdır.
-    random_forest = models["Random Forest"]
-    create_feature_importance_plot(
-        random_forest,
-        feature_columns,
-        plant_label
-    )
-
-    os.makedirs(MODEL_SAVE_PATH, exist_ok=True)
-
-    model_file_name = f"best_solar_power_model_{plant_label}.pkl"
-    model_path = os.path.join(MODEL_SAVE_PATH, model_file_name)
-
-    joblib.dump(best_model, model_path)
-
-    print("En iyi model kaydedildi:", model_path)
 
     return results_df
 
 
 def train_all_models():
     """
-    Plant 1, Plant 2 ve birleşik veri için modelleri çalıştırır.
+    Plant 1, Plant 2 ve birleşik veri için modelleri eğitir.
     """
 
     all_results = []
@@ -291,5 +299,72 @@ def train_all_models():
     return final_results
 
 
+def predict_power(
+    irradiation,
+    ambient_temperature,
+    module_temperature,
+    hour,
+    day_of_week=0,
+    month=6,
+    plant_label="Combined",
+    model_name="random_forest"
+):
+    """
+    Dışarıdan verilen ışınım, sıcaklık ve zaman değerlerine göre
+    AC_POWER tahmini yapar.
+
+    Örnek:
+    predict_power(
+        irradiation=0.65,
+        ambient_temperature=28,
+        module_temperature=40,
+        hour=12
+    )
+    """
+
+    model_path = os.path.join(
+        MODEL_SAVE_PATH,
+        f"{model_name}_{plant_label}.pkl"
+    )
+
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(
+            f"Model bulunamadı: {model_path}. "
+            "Önce python src/models.py komutunu çalıştırarak modelleri eğitin."
+        )
+
+    model = joblib.load(model_path)
+
+    input_data = pd.DataFrame([{
+        "AMBIENT_TEMPERATURE": ambient_temperature,
+        "MODULE_TEMPERATURE": module_temperature,
+        "IRRADIATION": irradiation,
+        "HOUR": hour,
+        "DAY_OF_WEEK": day_of_week,
+        "MONTH": month,
+    }])
+
+    prediction = model.predict(input_data)[0]
+
+    return prediction
+
+
 if __name__ == "__main__":
     train_all_models()
+
+    print("\n" + "=" * 70)
+    print("ÖRNEK TAHMİN")
+    print("=" * 70)
+
+    sample_prediction = predict_power(
+        irradiation=0.65,
+        ambient_temperature=28,
+        module_temperature=40,
+        hour=12,
+        day_of_week=2,
+        month=6,
+        plant_label="Combined",
+        model_name="random_forest"
+    )
+
+    print("Tahmin edilen AC_POWER:", round(sample_prediction, 2), "W")
