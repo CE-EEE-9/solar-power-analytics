@@ -18,6 +18,13 @@
 - Arda Yenisaraç
 - Kerem Nalçabasmaz
 
+## Project Overview
+
+Solar Power Analytics is a Python-based data analytics and visualization project developed to analyze solar power generation data from two different solar plants. The project focuses on cleaning raw generation and weather sensor data, producing meaningful visualizations, detecting abnormal production behavior, and preparing a machine learning-based power prediction module.
+
+The main goal of this project is to support better understanding of solar plant performance by combining data preprocessing, exploratory data analysis, interactive dashboards, anomaly detection, and power forecasting in a single workflow.
+
+
 ## Data source
 
 - Dataset: Solar Power Generation Data
@@ -148,3 +155,4 @@ The app includes:
 
 - Cleaned CSV files are ignored by git; everyone generates them locally.
 - `requirements.txt` already includes plotly, pandas, numpy, and streamlit.
+  
