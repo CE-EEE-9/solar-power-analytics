@@ -110,6 +110,20 @@ python scripts/save_images.py --plant 0
 
 PNG files are saved under `reports/images/`.
 
+## Run the Streamlit app
+
+Generate cleaned data, then launch the dashboard:
+
+```zsh
+python src/data_loader.py
+streamlit run app.py
+```
+
+The app includes:
+- Visualization tab (daily energy, inverter comparison, irradiation vs power, heatmap, temperature, power timeseries)
+- Anomaly Detection tab (scatter + anomaly list table)
+- Power Prediction tab (placeholder for ML integration)
+
 ## Notes
 
 - Cleaned CSV files are ignored by git; everyone generates them locally.
