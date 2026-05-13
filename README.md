@@ -24,6 +24,12 @@ Solar Power Analytics is a Python-based data analytics and visualization project
 
 The main goal of this project is to support better understanding of solar plant performance by combining data preprocessing, exploratory data analysis, interactive dashboards, anomaly detection, and power forecasting in a single workflow.
 
+ ### Key Features
+ - Interactive Visualizations: Built with Plotly and Streamlit to display AC/DC power time series, hourly production heatmaps, and irradiation vs. power scatter plots.  
+-  Threshold-Based Anomaly Detection: Identifies underperforming inverters by flagging daytime readings where AC power drops below a configurable threshold (default: 200 kW).  
+- Comparative Analytics: Evaluates and compares daily energy production between different plants and provides a top-10 inverter comparison by energy output.  
+- Environmental Impact Analysis: Analyzes the effect of ambient and module temperatures, as well as solar irradiation on power generation.
+
 ## Project Structure
 
 ```
