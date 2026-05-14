@@ -76,6 +76,18 @@ The models are rigorously evaluated using standard statistical error metrics to 
 - **RMSE (Root Mean Squared Error):** To penalize larger prediction outliers.
 - **R² Score:** To determine how well the model explains the variance in the generation data.
 
+## Machine Learning Workflow
+
+The forecasting pipeline follows these stages:
+
+1. Data Cleaning & Missing Value Handling
+2. Feature Engineering
+3. Train-Test Split
+4. Model Training
+5. Performance Evaluation
+6. Prediction Visualization
+
+
 ## Project Structure
 
 ```
