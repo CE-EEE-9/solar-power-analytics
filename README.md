@@ -30,6 +30,27 @@ The main goal of this project is to support better understanding of solar plant 
 - Comparative Analytics: Evaluates and compares daily energy production between different plants and provides a top-10 inverter comparison by energy output.  
 - Environmental Impact Analysis: Analyzes the effect of ambient and module temperatures, as well as solar irradiation on power generation.
 
+
+## System Workflow
+
+```text
+Raw Sensor Data
+        ↓
+Data Cleaning & Preprocessing
+        ↓
+Exploratory Data Analysis (EDA)
+        ↓
+Interactive Visualization
+        ↓
+Anomaly Detection
+        ↓
+Feature Engineering
+        ↓
+Machine Learning Forecasting
+        ↓
+Streamlit Dashboard
+```
+
 ## Data Visualization & Analytics
 
 The project incorporates an interactive data visualization and analytics layer to transform raw solar generation data into actionable operational insights. By combining exploratory data analysis (EDA) with dynamic dashboards, the system enables operators to monitor plant efficiency, detect anomalies, and evaluate inverter-level performance in real time.
