@@ -109,28 +109,24 @@ The forecasting pipeline follows these stages:
 6. Prediction Visualization
 
 
-## Project Structure
-
-```
 solar-power-analytics/
 ├── data/
-│   ├── raw/                  # Raw CSV files (not tracked by git)
-│   └── processed/            # Cleaned output files (not tracked by git)
+│   ├── raw/                 # Raw CSV files (not tracked by git)
+│   └── processed/           # Cleaned output files (not tracked by git)
 ├── reports/
-│   └── images/               # Exported PNG charts
-├── saved_models/             # Trained ML models
+│   └── images/              # Exported PNG charts
+├── saved_models/            # Trained ML models
 ├── scripts/
-│   ├── viz_demo.py           # Demo charts with synthetic data
-│   ├── save_visuals.py       # Export charts as HTML
-│   └── save_images.py        # Export charts as PNG
+│   ├── viz_demo.py          # Demo charts with synthetic data
+│   ├── save_visuals.py      # Export charts as HTML
+│   └── save_images.py       # Export charts as PNG
 ├── src/
-│   ├── data_loader.py        # Data cleaning and preprocessing
-│   └── visualization.py      # Plot functions
-├── app.py                    # Streamlit dashboard entry point
-├── config.py                 # Project-wide settings
-├── requirements.txt          # Full environment dependencies
-└── requirements-images.txt   # Additional deps for PNG export
-```
+│   ├── data_loader.py       # Data cleaning and preprocessing
+│   └── visualization.py     # Plot functions
+├── app.py                   # Streamlit dashboard entry point
+├── config.py                # Project-wide settings
+├── requirements.txt         # Full environment dependencies
+└── requirements-images.txt  # Additional deps for PNG export
 
 ## Data Source
 
