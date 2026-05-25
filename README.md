@@ -9,7 +9,7 @@
 - Veysel Genç
 - Yunus Emre Erten
 - Zeliha İnan
-- Gülse Ogultegin
+- Gülse Ogultegin 
 - Sinem Durmaz
 - Berat Erhan Şekeröz (Representative)
 - Zeynep Elif Göksu
